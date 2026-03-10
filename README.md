@@ -27,7 +27,21 @@ This project demonstrates a full **CI/CD Pipeline** for a Binary Calculator Web 
 - **Google Kubernetes Engine (GKE):** Orchestration and Deployment
 - **Jenkins:** Automation Server (CI/CD)
 
---- 
+---
+
+## 🔒 The IAM Security Workaround (Deviation from Lab Manual)
+During the implementation of this lab, I encountered a hard block regarding the generation of the `service_account.json` key file. 
+
+**The Issue:**
+Google Cloud recently updated its default security posture, enforcing an Organization Policy (`iam.disableServiceAccountKeyCreation`) that prevents the creation of JSON keys to stop accidental credential leaks. Because personal/student GCP accounts do not have an overarching "Organization" workspace, this policy cannot be disabled by the project owner.
+
+**The Solution:**
+Instead of relying on a downloaded JSON key for Jenkins to authenticate with GCP, I engineered a more secure, modern, "keyless" authentication method:
+1.  **Native Node Identity:** Since Jenkins is deployed *inside* the GKE cluster, it inherits the identity of the cluster's default compute service account.
+2.  **Direct IAM Binding:** I directly granted the necessary IAM roles (`artifactregistry.writer`, `container.admin`, `cloudbuild.builds.builder`, `storage.admin`, and `iam.serviceAccountUser`) to the GKE node's service account.
+3.  **Infrastructure as Code Adjustment:** I modified the `Jenkinsfile_v2` pipeline script to remove all references to the `service_account` credential and the `gcloud auth activate-service-account` commands, allowing Jenkins to authenticate silently and securely via the node pool.
+
+---
 
 ## 🚀 Discussion Questions & Answers
 
@@ -45,7 +59,53 @@ Artifact Registry provides a secure, private location to store Docker images. By
 
 ---
 
-## ⚙️ How to Run Locally
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/Ayngaraan/SOFE3980U-Lab3-Part2.git](https://github.com/Ayngaraan/SOFE3980U-Lab3-Part2.git)
+## 💻 Step-by-Step Deployment Commands
+Below is the complete sequence of GCP Cloud Shell commands used to build the infrastructure, deploy Jenkins, apply the security workaround, and deploy the application.
+
+### Phase 1: Infrastructure Provisioning
+```bash
+# 1. Create optimized GKE Cluster with required scopes
+gcloud container clusters create sofe3980u \
+  --num-nodes=2 \
+  --machine-type=e2-standard-4 \
+  --disk-size=50 \
+  --zone=us-central1-a \
+  --scopes=[https://www.googleapis.com/auth/cloud-platform](https://www.googleapis.com/auth/cloud-platform)
+
+# 2. Create the Artifact Registry
+gcloud artifacts repositories create sofe3980u \
+  --repository-format=docker \
+  --location=us-central1 \
+  --description="Docker repository for CI/CD Pipeline"
+# 3. Connect terminal to the cluster
+gcloud container clusters get-credentials sofe3980u --zone=us-central1-a
+
+# 4. Install Jenkins via Helm
+helm repo add jenkinsci [https://charts.jenkins.io](https://charts.jenkins.io)
+helm repo update
+helm install cd-jenkins -f ~/SOFE3980U-Lab3-Part2/jenkins/values.yaml jenkinsci/jenkins --wait
+
+# 5. Expose Jenkins directly on Port 80 to bypass local network restrictions
+kubectl expose pod cd-jenkins-0 --type=LoadBalancer --name=jenkins-direct-access --port=80 --target-port=8080
+
+# 6. Retrieve the Jenkins UI IP Address
+kubectl get services jenkins-direct-access --watch
+# 7. Enable Cloud Resource Manager API
+gcloud services enable cloudresourcemanager.googleapis.com
+
+# 8. Grant required permissions directly to the default GKE compute service account
+PROJECT_ID=$(gcloud config get-value project)
+NODE_SA="$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$NODE_SA" --role="roles/artifactregistry.writer"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$NODE_SA" --role="roles/container.admin"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$NODE_SA" --role="roles/cloudbuild.builds.builder"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$NODE_SA" --role="roles/storage.admin"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$NODE_SA" --role="roles/iam.serviceAccountUser"
+
+# 9. Retrieve the live application IP address (Post-Jenkins Build)
+kubectl get service binarycalculator-service --watch
+
+# 10. Clean up resources to prevent unwanted billing
+kubectl delete service binarycalculator-service
+kubectl delete deployment binarycalculator-deployment
