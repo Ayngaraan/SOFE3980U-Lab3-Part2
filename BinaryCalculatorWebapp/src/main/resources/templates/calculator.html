@@ -1,192 +1,114 @@
-<!DOCTYPE html>
-<html>
-  
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-	<title> Binary Calculator </title>
-    <script src=
-"https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.js"
-        integrity=
-"sha512-BbVEDjbqdN3Eow8+empLMrJlxXRj5nEitiCAK5A1pUr66+jLVejo3PmjIaucRnjlB0P9R3rBUs3g5jXc8ti+fQ=="
-        crossorigin="anonymous" 
-        referrerpolicy="no-referrer"></script>
-    <script src=
-"https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"
-        integrity=
-"sha512-iphNRh6dPbeuPGIrQbCdbBF/qcqadKWLa35YPVfMZMHBSI6PLJh1om2xCTWhpVpmUyb4IvVS9iYnnYMkleVXLA=="
-        crossorigin="anonymous" 
-        referrerpolicy="no-referrer"></script>
-    <!-- for styling -->
+    <title>Binary Calculator</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
-        table {
-            border: 1px solid black;
-            margin-left: auto;
-            margin-right: auto;
+        body { font-family: sans-serif; }
+        .calculator-container {
+            width: 600px;
+            margin: 50px auto;
+            border: 1px solid #000;
+            padding: 10px;
         }
-  
-        input[type="button"] {
-            width: 100%;
-            padding: 20px 40px;
-            background-color: green;
+        .display-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .input-box {
+            width: 40%;
+            padding: 10px;
+            font-size: 1.2em;
+            text-align: right;
+            border: 2px solid #000;
+            border-radius: 5px;
+        }
+        .input-box:focus { background-color: #e0f7fa; outline: none; }
+        .operator-box {
+            width: 10%;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .btn {
+            padding: 15px;
+            font-size: 1.5em;
             color: white;
-            font-size: 24px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-        }
-		input[type="submit"] {
-            width: 100%;
-            padding: 20px 40px;
             background-color: green;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
             border: none;
             border-radius: 5px;
+            cursor: pointer;
         }
-  
-        input[type="text"] {
-            padding: 20px 30px;
-            font-size: 24px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            border: 2px solid black;
-        }
-		select {
-            padding: 20px 30px;
-            font-size: 24px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            border: 2px solid black;
-        }
+        .btn:hover { background-color: darkgreen; }
+        .btn-wide { grid-column: span 2; }
     </style>
-</head>
-<!-- create table -->
-  
-<body>
-<form action="/" method="Post">
-    <table id="calcu">
-        <tr>
-            <td colspan="2"><input type="text" id="operand1" name="operand1" th:value="${operand1}" onfocus="focusFun(false)" readonly></td>
-            <td colspan="1"> <select id="operator" name="operator"  >
-			<option value="+">+</option>
-			<option value="*">*</option>
-			<option value="|">|</option>
-			<option value="&">&</option>
-			<option value=" " hidden selected="selected" > </option>
-			</select></td>
-            <td colspan="2"><input type="text" id="operand2" name="operand2" onfocus="focusFun(true)" readonly></td>
-            
-        </tr>
-        <tr>
-            <td colspan="1"><input type="button" value="0" onclick="dis('0')" 
-                        onkeydown="myFunction(event)"> </td>
-            <td colspan="1"><input type="button" value="1" onclick="dis('1')" 
-                        onkeydown="myFunction(event)"> </td>
-			<td colspan="1"><input type="button" value="sddsd" hidden></td>
-			<td colspan="1"><input type="button" value="C" onclick="clr()"></td>
-			<td colspan="1"><input type="button" value="CE" onclick="clrOne()"></td>
-		</tr>
-		<tr>
-		</tr>
-		<tr>
-			<td colspan="1"><input type="button" value="+" onclick="oper('+')" 
-                        onkeydown="myFunction(event)"> </td>
-            <td colspan="1"><input type="button" value="*" onclick="oper('*')" 
-                        onkeydown="myFunction(event)"> </td>
-		</tr>
-		<tr>
-            <td colspan="1"><input type="button" value="|" onclick="oper('|')" 
-                        onkeydown="myFunction(event)"> </td>
-			<td colspan="1"><input type="button" value="&" onclick="oper('&')" 
-                        onkeydown="myFunction(event)"> </td>
-			<td colspan="1"><input type="button" hidden></td>
-            <td><input type="submit" value="=" accesskey="="> </td> 
-        </tr>
-    </table>
-  </form>
-	<script th:inline="javascript">
-		var x = [[${operand1Focused}]];
-	</script>
     <script>
-        // Function that display value
-		function focusFun(val){
-			x=val;
-		}
-        function dis(val) {
-            if(x) {
-				document.getElementById("operand2").value += val;
-			}
-			else {
-				document.getElementById("operand1").value += val;
-			}
+        // Track which input box was last clicked
+        let activeInputId = 'operand1';
+
+        function setActive(id) {
+            activeInputId = id;
         }
-		function oper(val)
-		{
-			document.getElementById("operator").value = val;
-			x=true;
-		}
-        function myFunction(event) {
-            if (event.key == '0' || event.key == '1')
-				if(x) {
-					document.getElementById("operand2").value += event.key;
-				}
-				else {
-					document.getElementById("operand1").value += event.key;
-				}
+
+        function addToInput(val) {
+            let field = document.getElementById(activeInputId);
+            field.value += val;
+            field.focus(); // Keep focus on the box
         }
-  
-        var cal = document.getElementById("calcu");
-        cal.onkeyup = function (event) {
-            if (event.keyCode === 13) {
-                console.log("Enter");
-                let x = document.getElementById("result").value
-                console.log(x);
-                solve();
-            }
+
+        function setOperator(op) {
+            document.getElementById('operator').value = op;
+            // Auto-switch to second box when operator is clicked
+            activeInputId = 'operand2';
+            document.getElementById('operand2').focus();
         }
-  
-        // Function that evaluates the digit and return result
-        function solve() {
-            let x = document.getElementById("result").value
-            let y = math.evaluate(x)
-            document.getElementById("result").value = y
-        }
-  
-        // Function that clear the display
-        function clr() {
-            if(x) {
-				if( document.getElementById("operand2").value == "") {
-					x=false;
-					if(document.getElementById("operator").value == ""){
-						document.getElementById("operand1").value = "";
-					}
-					else{
-						document.getElementById("operator").value = "";
-					}
-				}
-				else{
-					document.getElementById("operand2").value = "";
-				}
-			}
-			else {
-				document.getElementById("operand1").value = "";
-			}
-        }
-		function clrOne() {
-            if(x) {
-				str=document.getElementById("operand2").value;
-				str=str.slice(0,-1);
-				document.getElementById("operand2").value=str;
-			}
-			else {
-				str=document.getElementById("operand1").value;
-				str=str.slice(0,-1);
-				document.getElementById("operand1").value=str;
-			}
+        
+        function clearFields() {
+            document.getElementById('operand1').value = "";
+            document.getElementById('operand2').value = "";
+            activeInputId = 'operand1';
+            document.getElementById('operand1').focus();
         }
     </script>
+</head>
+<body>
+    <div class="calculator-container">
+        <form action="/" method="post">
+            <div class="display-row">
+                <input type="text" id="operand1" name="operand1" class="input-box" 
+                       th:value="${operand1}" onclick="setActive('operand1')" required autofocus />
+                
+                <select id="operator" name="operator" class="operator-box">
+                    <option value="+">+</option>
+                    <option value="*">*</option>
+                    <option value="|">|</option>
+                    <option value="&">&</option>
+                </select>
+
+                <input type="text" id="operand2" name="operand2" class="input-box" 
+                       th:value="${operand2}" onclick="setActive('operand2')" required />
+            </div>
+
+            <div class="button-grid">
+                <button type="button" class="btn" onclick="addToInput('0')">0</button>
+                <button type="button" class="btn" onclick="addToInput('1')">1</button>
+                <button type="button" class="btn" onclick="clearFields()">C</button>
+                <button type="button" class="btn" onclick="clearFields()">CE</button>
+
+                <button type="button" class="btn" onclick="setOperator('+')">+</button>
+                <button type="button" class="btn" onclick="setOperator('*')">*</button>
+                <div style="grid-column: span 2;"></div>
+
+                <button type="button" class="btn" onclick="setOperator('|')">|</button>
+                <button type="button" class="btn" onclick="setOperator('&')">&</button>
+                <button type="submit" class="btn btn-wide">=</button>
+            </div>
+        </form>
+    </div>
 </body>
-  
-</html> 
+</html>
