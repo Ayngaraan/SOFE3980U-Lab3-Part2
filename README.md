@@ -27,7 +27,7 @@ This project demonstrates a full **CI/CD Pipeline** for a Binary Calculator Web 
 - **Google Kubernetes Engine (GKE):** Orchestration and Deployment
 - **Jenkins:** Automation Server (CI/CD)
 
----
+--- 
 
 ## 🚀 Discussion Questions & Answers
 
