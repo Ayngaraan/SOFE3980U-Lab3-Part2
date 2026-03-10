@@ -14,7 +14,7 @@
 | **Part 1: CI Pipeline & Custom Design** | [Insert YouTube/OneDrive Link Here] |
 | **Part 2: CD Pipeline & GKE Deployment** | [Insert YouTube/OneDrive Link Here] |
 
----
+--- 
 
 ## 🛠 Lab Overview
 This project demonstrates a full **CI/CD Pipeline** for a Binary Calculator Web Application. The pipeline automates testing, building, containerizing, and deploying a Spring Boot application to a **Google Kubernetes Engine (GKE)** cluster using **Jenkins**.
