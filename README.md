@@ -285,4 +285,4 @@ What do pipeline, node, agent, stage, and steps mean in the context of Jenkins?
 * A report containing both the discussion and design parts.
 * Your Github link and video links in the report.
 * An audible video of about 3 minutes showing the continuous integration part (the two techniques).
-* An audible video of about 3 minutes showing the design part.
+* An audible video of about 3 minutes showing the design part
