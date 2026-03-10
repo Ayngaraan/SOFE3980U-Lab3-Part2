@@ -264,7 +264,7 @@ Search up **Cloud Build API** in GCP and enable the API.
           
              ![image](https://github.com/user-attachments/assets/462a065b-e779-48a7-b0d8-3efdac247e5f)
           
-As the webhook is already configured, it should work automatically when after each commit. Commit any change to the repository. Then, check that the job is been executed and check its report.
+
 
 ## Discussion:
 What do pipeline, node, agent, stage, and steps mean in the context of Jenkins?
