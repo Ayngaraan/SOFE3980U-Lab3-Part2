@@ -11,8 +11,7 @@
 
 | Deliverable | Video Link |
 | :--- | :--- |
-| **Part 1: CI Pipeline & Custom Design** | [Insert YouTube/OneDrive Link Here] |
-| **Part 2: CD Pipeline & GKE Deployment** | [Insert YouTube/OneDrive Link Here] |
+| **Part 1: CI Pipeline & Custom Design/Part 2: CD Pipeline & GKE Deployment** | https://drive.google.com/file/d/1QYbJ0zacgd-flcobo_RTPaEMKAygBp2v/view?usp=sharing |
 
 --- 
 
